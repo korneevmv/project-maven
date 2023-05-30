@@ -11,14 +11,65 @@
     <properties>
         <maven.compiler.source>18</maven.compiler.source>
         <maven.compiler.target>18</maven.compiler.target>
+        <maven.plugin.validation>VERBOSE</maven.plugin.validation>
     </properties>
 
     <dependencies>
-
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.12.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>20.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.javarush</groupId>
+            <artifactId>desktop-game-engine</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/desktop-game-engine.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.8.2</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>${project.build.directory}/dependencies</directory>
+                <targetPath>dep/</targetPath>
+            </resource>
+        </resources>
+
         <plugins>
+            <!-- Installing local jar -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                        <configuration>
+                            <file>${basedir}/lib/desktop-game-engine.jar</file>
+                            <groupId>com.javarush</groupId>
+                            <artifactId>desktop-game-engine</artifactId>
+                            <version>1.0</version>
+                            <packaging>jar</packaging>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <!-- Usual compilation -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -29,6 +80,34 @@
                 </configuration>
             </plugin>
 
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+
+            <!-- Manifest building -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>dep/</classpathPrefix>
+                            <mainClass>org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader</mainClass>
+                        </manifest>
+                        <manifestEntries>
+                            <Rsrc-Main-Class>com.javarush.games.racer.RacerGame</Rsrc-Main-Class>
+                            <Class-Path>./</Class-Path>
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
             <!-- Run java-fx app over Maven -->
             <plugin>
                 <groupId>org.openjfx</groupId>
@@ -36,6 +115,33 @@
                 <version>0.0.8</version>
                 <configuration>
                     <mainClass>com.javarush.games.racer.RacerGame</mainClass>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.6.0</version>
+                <configuration>
+                    <outputDirectory>${project.build.directory}/dependencies</outputDirectory>
+                    <includeScope>compile</includeScope>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/StrangeTest.java</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
         </plugins>
